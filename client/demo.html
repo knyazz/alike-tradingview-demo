@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head></head>
+  <body>
+  <!-- websocket -->
+  <script type="text/javascript">
+      var socket;
+      function openSocket() {
+        var _socket = new WebSocket("ws://127.0.0.1:5678/");
+
+        _socket.onopen = function(e) {
+          console.log("[open] connnected success");
+        };
+
+        _socket.onmessage = function (event) {
+          console.log("[message] got data from server");
+          console.log(JSON.parse(event.data));
+        };
+
+        _socket.onclose = function(event) {
+          if (event.wasClean) {
+            console.log(`[close] closed clean, code=${event.code} reason=${event.reason}`);
+          } else {
+            // например, сервер убил процесс или сеть недоступна
+            // обычно в этом случае event.code 1006
+            console.log('[close] connection interrupted. Reconnecting...');
+            setTimeout(openSocket, 60000);
+          }
+        };
+
+        _socket.onerror = function(error) {
+          console.log(`[error] socket ${error.message}`);
+        };
+
+        return _socket;
+      };
+
+      socket = openSocket();
+  </script>
+  </body>
+</html>
