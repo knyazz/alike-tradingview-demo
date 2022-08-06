@@ -4,31 +4,35 @@ import datetime
 import json
 import websockets
 
-from config import TICK, WS
-from utils import generate_movement
-
-
-connected = set()
-
-
-tickers = {i: 0 for i in range(0, 100)}
+from config import TICK, WS, tickers, connected
+from utils import generate_movement, DequeEncoder
 
 
 def get_tickers() -> None:
+    now: datetime.datetime = datetime.datetime.utcnow().isoformat() + "Z"
     for key in tickers.keys():
-        tickers[key] += generate_movement()
+        tickers[key]["time"] = now
+        current_value = tickers[key]["current"] + generate_movement()
+        tickers[key]["current"] = current_value
+        tickers[key]["values"].append({
+            "time": now,
+            "value": current_value
+        })
 
 
 def producer() -> str:
     """
     generate new data to send
     """
-    now = datetime.datetime.utcnow().isoformat() + "Z"
     get_tickers()
-    data = json.dumps(dict(
-        now=now,
-        tickers=tickers
-    ))
+    now: datetime.datetime = datetime.datetime.utcnow().isoformat() + "Z"
+    data: str = json.dumps(
+        dict(
+            now=now,
+            tickers=tickers
+        ),
+        cls=DequeEncoder
+    )
     return data
 
 
@@ -38,7 +42,7 @@ async def producer_handler(websocket, path) -> None:
     try:
         while True:
             await asyncio.sleep(TICK)  # this one can be removed
-            message = producer()
+            message: str = producer()
             if message:
                 await websocket.send(message)
     finally:

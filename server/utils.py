@@ -1,4 +1,13 @@
+import collections
+import json
 import random
+
+
+class DequeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, collections.deque):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 def generate_movement() -> int:
