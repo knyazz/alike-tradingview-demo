@@ -9,6 +9,9 @@ from utils import generate_movement, DequeEncoder
 
 
 def get_tickers() -> None:
+    """
+    update data of tickers
+    """
     now: datetime.datetime = datetime.datetime.utcnow().isoformat() + "Z"
     for key in tickers.keys():
         tickers[key]["time"] = now
@@ -41,7 +44,7 @@ async def producer_handler(websocket, path) -> None:
     connected.add(websocket)
     try:
         while True:
-            await asyncio.sleep(TICK)  # this one can be removed
+            await asyncio.sleep(TICK)  # waiting to send new data
             message: str = producer()
             if message:
                 await websocket.send(message)
@@ -51,13 +54,16 @@ async def producer_handler(websocket, path) -> None:
 
 
 if __name__ == "__main__":
+    # init websocket server
     start_server = websockets.serve(
         producer_handler,
         WS['host'],
         WS['port']
     )
 
+    # TODO: remove depreaction warning for python 3.10: use asyncio.new_event_loop
     loop = asyncio.get_event_loop()
 
+    # run event loop for websocket server
     loop.run_until_complete(start_server)
     loop.run_forever()

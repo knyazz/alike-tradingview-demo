@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 
+# this implementation is optional. We can use only websockets.
 @app.get("/api/v1/ticker/")
 async def ticker_list() -> dict:
     """
